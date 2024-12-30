@@ -1,14 +1,14 @@
 import streamlit as st
-import plotly.express as px
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 
-# Function to simulate glucose data for demo purposes
+# Function to simulate glucose data
 def generate_glucose_data():
     # Simulate glucose levels for the past 7 days
     times = [datetime.now() - timedelta(days=i) for i in range(7)]
-    glucose_levels = np.random.normal(loc=100, scale=15, size=7)  # Simulate glucose levels
+    glucose_levels = np.random.normal(loc=100, scale=15, size=7)  # Simulated glucose levels
     glucose_data = pd.DataFrame({
         'Timestamp': times,
         'Glucose Level (mg/dL)': glucose_levels
@@ -29,11 +29,11 @@ def glucose_alerts(glucose_data):
     latest_glucose = glucose_data['Glucose Level (mg/dL)'].iloc[-1]
     
     if latest_glucose > 180:
-        st.sidebar.warning(f"High glucose alert: {latest_glucose} mg/dL")
+        st.sidebar.warning(f"High glucose alert: {latest_glucose:.2f} mg/dL")
     elif latest_glucose < 70:
-        st.sidebar.warning(f"Low glucose alert: {latest_glucose} mg/dL")
+        st.sidebar.warning(f"Low glucose alert: {latest_glucose:.2f} mg/dL")
     else:
-        st.sidebar.success(f"Current glucose level: {latest_glucose} mg/dL - Normal")
+        st.sidebar.success(f"Current glucose level: {latest_glucose:.2f} mg/dL - Normal")
 
 # Main Dashboard
 def main_dashboard():
@@ -53,9 +53,16 @@ def main_dashboard():
     
     # Display Real-time Data Graph
     st.subheader("Glucose Level Trend (Last 7 Days)")
-    fig = px.line(glucose_data, x='Timestamp', y='Glucose Level (mg/dL)', 
-                  title="Glucose Levels Over Time", labels={'Glucose Level (mg/dL)': 'Glucose Level (mg/dL)'})
-    st.plotly_chart(fig)
+    fig, ax = plt.subplots()
+    ax.plot(glucose_data['Timestamp'], glucose_data['Glucose Level (mg/dL)'], marker='o', linestyle='-', color='blue')
+    ax.set_title("Glucose Levels Over Time")
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Glucose Level (mg/dL)")
+    ax.axhline(y=130, color='green', linestyle='--', label="Upper Target Limit")
+    ax.axhline(y=70, color='red', linestyle='--', label="Lower Target Limit")
+    ax.legend()
+    plt.xticks(rotation=45)
+    st.pyplot(fig)
     
     # Display Data Insights
     st.subheader("Personalized Insights")
