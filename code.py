@@ -1,99 +1,134 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
 
-# Function to simulate glucose data
-def generate_glucose_data():
-    # Simulate glucose levels for the past 7 days
-    times = [datetime.now() - timedelta(days=i) for i in range(7)]
-    glucose_levels = np.random.normal(loc=100, scale=15, size=7)  # Simulated glucose levels
-    glucose_data = pd.DataFrame({
-        'Timestamp': times,
-        'Glucose Level (mg/dL)': glucose_levels
+# Branding & Navigation
+st.set_page_config(page_title="GlucoTrack Dashboard", layout="wide")
+
+# Header Section
+st.markdown(
+    """
+    <style>
+    .header {
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    .header h1 {
+        font-family: Arial, sans-serif;
+        color: #333333;
+        display: inline;
+        margin-right: 50px;
+    }
+    .header img {
+        float: left;
+        margin-right: 15px;
+    }
+    </style>
+    <div class="header">
+        <img src="https://via.placeholder.com/50" alt="Logo">
+        <h1>GlucoTrack Innovations</h1>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+# Sidebar Navigation
+st.sidebar.title("Navigation")
+navigation = st.sidebar.radio(
+    "Go to:", ["Home", "Device Settings", "Data Insights", "Reports", "Settings", "Profile"]
+)
+
+# Device Status Section
+if navigation == "Home":
+    st.title("Device Status")
+    st.write("Monitor your device's real-time performance and data.")
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.subheader("Device Health")
+        st.success("Device is functioning properly.")
+
+    with col2:
+        st.subheader("Battery Status")
+        st.progress(80)
+
+    with col3:
+        st.subheader("Last Sync")
+        st.write("Last Synced: 5 minutes ago")
+
+# Glucose Monitoring Data Section
+if navigation == "Data Insights":
+    st.title("Glucose Monitoring")
+    st.subheader("Real-Time Glucose Levels")
+
+    # Simulating real-time glucose data
+    glucose_level = np.random.randint(70, 150)
+    st.metric("Current Blood Glucose", f"{glucose_level} mg/dL")
+
+    # Trends
+    st.subheader("Glucose Trends")
+    date_range = pd.date_range(start="2024-12-01", periods=30, freq="D")
+    glucose_trends = pd.DataFrame({
+        "Date": date_range,
+        "Glucose Level": np.random.randint(70, 180, size=(30,))
+    }).set_index("Date")
+    st.line_chart(glucose_trends)
+
+    # Alerts
+    st.subheader("Alerts")
+    if glucose_level > 140:
+        st.error("High Glucose Alert: Immediate action required!")
+    elif glucose_level < 80:
+        st.warning("Low Glucose Alert: Consider eating or adjusting medication.")
+    else:
+        st.success("Glucose levels are within the normal range.")
+
+# Data Insights Section
+if navigation == "Reports":
+    st.title("Data Insights")
+    st.subheader("Statistics and Recommendations")
+
+    # Example data
+    insights = {
+        "Average Glucose Level": "110 mg/dL",
+        "Lowest Level": "65 mg/dL",
+        "Highest Level": "145 mg/dL",
+    }
+    for key, value in insights.items():
+        st.write(f"**{key}**: {value}")
+
+    st.subheader("Glucose Distribution")
+    glucose_distribution = pd.DataFrame({
+        "Category": ["Normal", "High", "Low"],
+        "Percentage": [65, 25, 10]
     })
-    return glucose_data
+    st.bar_chart(glucose_distribution.set_index("Category"))
 
-# Sidebar for User Profile
-def user_profile():
-    st.sidebar.header("User Profile")
-    st.sidebar.text("Name: John Doe")
-    st.sidebar.text("Age: 45")
-    st.sidebar.text("Diabetes Type: Type 2")
-    st.sidebar.text("Target Glucose Range: 70 - 130 mg/dL")
-
-# Sidebar for Alerts
-def glucose_alerts(glucose_data):
-    st.sidebar.header("Alerts")
-    latest_glucose = glucose_data['Glucose Level (mg/dL)'].iloc[-1]
-    
-    if latest_glucose > 180:
-        st.sidebar.warning(f"High glucose alert: {latest_glucose:.2f} mg/dL")
-    elif latest_glucose < 70:
-        st.sidebar.warning(f"Low glucose alert: {latest_glucose:.2f} mg/dL")
-    else:
-        st.sidebar.success(f"Current glucose level: {latest_glucose:.2f} mg/dL - Normal")
-
-# Main Dashboard
-def main_dashboard():
-    # Title and introduction
-    st.title("GlucoTrack Innovations Dashboard")
-    st.subheader("Real-time Glucose Monitoring and Insights")
-    st.markdown("""
-    Welcome to the GlucoTrack Innovations dashboard. This dashboard provides you with real-time glucose level monitoring, trends, and personalized insights.
-    """)
-    
-    # Generate glucose data (for demo purposes)
-    glucose_data = generate_glucose_data()
-    
-    # Display Real-time Glucose Level
-    latest_glucose = glucose_data['Glucose Level (mg/dL)'].iloc[-1]
-    st.metric(label="Current Glucose Level", value=f"{latest_glucose:.2f} mg/dL", delta="0.5 mg/dL")
-    
-    # Display Real-time Data Graph
-    st.subheader("Glucose Level Trend (Last 7 Days)")
-    fig, ax = plt.subplots()
-    ax.plot(glucose_data['Timestamp'], glucose_data['Glucose Level (mg/dL)'], marker='o', linestyle='-', color='blue')
-    ax.set_title("Glucose Levels Over Time")
-    ax.set_xlabel("Date")
-    ax.set_ylabel("Glucose Level (mg/dL)")
-    ax.axhline(y=130, color='green', linestyle='--', label="Upper Target Limit")
-    ax.axhline(y=70, color='red', linestyle='--', label="Lower Target Limit")
-    ax.legend()
-    plt.xticks(rotation=45)
-    st.pyplot(fig)
-    
-    # Display Data Insights
-    st.subheader("Personalized Insights")
-    avg_glucose = glucose_data['Glucose Level (mg/dL)'].mean()
-    st.write(f"Your average glucose level over the last 7 days is: {avg_glucose:.2f} mg/dL.")
-    
     # Recommendations
-    if latest_glucose > 180:
-        st.write("Consider reviewing your insulin dosage or meal plan.")
-    elif latest_glucose < 70:
-        st.write("Consider having a quick snack or consulting your healthcare provider.")
-    else:
-        st.write("Your glucose levels are within the target range. Keep up the good work!")
-    
-    # Footer with Contact Information
-    st.markdown("""
-    ---
-    **Contact Information**  
-    Email: support@glucotrack.com  
-    Phone: +123 456 7890
-    """)
+    st.subheader("Personalized Recommendations")
+    st.write("Your glucose trend shows higher levels in the morning. Consider adjusting your diet or medication.")
 
-# Page Layout and User Interaction
-def main():
-    # Sidebar setup
-    user_profile()
-    glucose_alerts(generate_glucose_data())
-    
-    # Main Dashboard Content
-    main_dashboard()
+# Settings Section
+if navigation == "Settings":
+    st.title("Settings")
+    st.subheader("Device Preferences")
+    st.checkbox("Enable Real-Time Monitoring")
+    st.checkbox("Enable Notifications for High/Low Glucose")
 
-# Run the application
-if __name__ == "__main__":
-    main()
+    st.subheader("Profile Settings")
+    name = st.text_input("Name", "John Doe")
+    age = st.number_input("Age", 18, 100, 30)
+    weight = st.number_input("Weight (kg)", 40, 150, 70)
+    diabetes_type = st.selectbox("Diabetes Type", ["Type 1", "Type 2", "Gestational", "Other"])
+    st.write(f"Profile updated for: {name}, Age: {age}, Weight: {weight} kg, Diabetes: {diabetes_type}")
+
+# Footer
+st.markdown(
+    """
+    <footer style='text-align: center; font-size: 0.9em; color: #555;'>
+        © 2024 GlucoTrack Innovations | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a>
+    </footer>
+    """,
+    unsafe_allow_html=True,
+)
